@@ -3,6 +3,7 @@
 from __future__ import print_function
 import subprocess, sys, argparse
 import time
+from os import environ
 import os.path
 
 ## old parser
@@ -18,14 +19,14 @@ start_time = time.time()
 # constants
 ########################################
 
-cvc5=['/opt/homebrew/opt/cvc5/bin/cvc5', '--lang', 'smt2', '--produce-models']
+smtSolver=[environ['SMT_SOLVER_PATH'], '--lang', 'smt2', '--produce-models']
 default_verbosity = 1
 
 ########################################
-# Check CVC4 version
+# Check SMT Solver version
 ########################################
-if not os.path.isfile(cvc5[0]):
-    print("CVC4 not found. Currently searching for it at " + cvc5[0])
+if not os.path.isfile(smtSolver[0]):
+    print("SMT Solver not found. Currently searching for it at " + smtSolver[0])
     print("Please update source if installed at a different location.")
     sys.exit(1)
 
@@ -268,7 +269,7 @@ def filterPredicates(predicates):
         fullinput += query(p)
         fullinput += query('(not '+p+')')
     stats["smtqueries"] += 1
-    p = subprocess.Popen(cvc5 + args.cvc4args.split() + ['--incremental'],
+    p = subprocess.Popen(smtSolver + args.cvc4args.split() + ['--incremental'],
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -288,7 +289,7 @@ def simplifyUsingSMTSolver(precondition):
     fullinput += (abstractDefinition + bowtie)
     fullinput += "(assert " + precondition + ")\n"
     fullinput += "(check-sat)\n"
-    p = subprocess.Popen(cvc5 + args.cvc4args.split() + ['--dump=assertions', '--dag-thresh=0', '--simplification none'],
+    p = subprocess.Popen(smtSolver + args.cvc4args.split() + ['--dump=assertions', '--dag-thresh=0', '--simplification none'],
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -317,7 +318,7 @@ def valid(formula, getvalue=[], getvalue_result={}):
         print(";;; valid("+formula+"):")
         print(fullinput)
 
-    p = subprocess.Popen(cvc5 + args.cvc4args.split(),
+    p = subprocess.Popen(smtSolver + args.cvc4args.split(),
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,

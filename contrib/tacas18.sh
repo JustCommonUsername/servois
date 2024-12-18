@@ -3,19 +3,8 @@
 set -ex
 cd "$(dirname "${0}")"
 
-# Configurable.
-CVC5=${1:$(brew --prefix cvc5)}
-
-# Check everything exists.
-python -c "import yaml" || {
-  echo "Installing yaml."
-  brew install python-yaml
-} && echo "YAML already found or installed."
-
-python -c "import pyparsing" || {
-  echo "Installing pyparsing"
-  brew install python-pyparsing
-} && echo "pyparsing already found or installed."
+# Set through the shell argument. Default to CVC5 binary path.
+export SMT_SOLVER_PATH=${1:"$(brew --prefix cvc5)/bin/cvc5"}
 
 cd ../test
 ./runall.py

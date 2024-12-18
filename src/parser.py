@@ -102,7 +102,7 @@ def And(l):
 # Abstract Spec -> Abstract SMT Definition
 ############################################################
 
-def specToSmtDef(spec):
+def specToSmtDef(spec: Specification):
     ret = ""
     ret += ";; BEGIN: specToSmtDef( " + spec.name + " )"
     ret += "\n\n"
