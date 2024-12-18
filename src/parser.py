@@ -147,7 +147,7 @@ def fileToSpec(file):
     internal data structures."""
 
     stream = open(file, 'r') if file is not None else sys.stdin
-    return Specification(yaml.load(stream))
+    return Specification(yaml.load(stream, yaml.Loader))
 
 def StateVar(s, varname):
     return [{'name': x['name'] + varname, 'type':x['type']} 

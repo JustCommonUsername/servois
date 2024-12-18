@@ -18,14 +18,14 @@ start_time = time.time()
 # constants
 ########################################
 
-cvc4=['/usr/local/bin/cvc4','--lang','smt2','--produce-models']
+cvc5=['/opt/homebrew/opt/cvc5/bin/cvc5', '--lang', 'smt2', '--produce-models']
 default_verbosity = 1
 
 ########################################
 # Check CVC4 version
 ########################################
-if not os.path.isfile(cvc4[0]):
-    print("CVC4 not found. Currently searching for it at " + cvc4[0])
+if not os.path.isfile(cvc5[0]):
+    print("CVC4 not found. Currently searching for it at " + cvc5[0])
     print("Please update source if installed at a different location.")
     sys.exit(1)
 
@@ -262,16 +262,18 @@ def query(s):
     return '(push 1)(assert (not '+s+'))(check-sat)(pop 1)\n'
 
 def filterPredicates(predicates):
-    fullinput = "(set-logic ALL_SUPPORTED)\n"
+    fullinput = "(set-logic ALL)\n"
     fullinput += (abstractDefinition + bowtie)
     for p in predicates:
         fullinput += query(p)
         fullinput += query('(not '+p+')')
     stats["smtqueries"] += 1
-    p = subprocess.Popen(cvc4+args.cvc4args.split()+['--incremental'],
+    p = subprocess.Popen(cvc5 + args.cvc4args.split() + ['--incremental'],
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+                         stderr=subprocess.PIPE,
+                         encoding="utf8",
+                         text=True)
     out, err = p.communicate(fullinput)
     outlines=out.split()
     if len(outlines) != len(predicates)*2:
@@ -282,14 +284,16 @@ def filterPredicates(predicates):
             if outlines[2*i]=="sat" and outlines[2*i+1]=="sat"]
     
 def simplifyUsingSMTSolver(precondition):
-    fullinput = "(set-logic ALL_SUPPORTED)\n"
+    fullinput = "(set-logic ALL)\n"
     fullinput += (abstractDefinition + bowtie)
     fullinput += "(assert " + precondition + ")\n"
     fullinput += "(check-sat)\n"
-    p = subprocess.Popen(cvc4+args.cvc4args.split()+['--dump=assertions','--dag-thresh=0','--simplification none'],
+    p = subprocess.Popen(cvc5 + args.cvc4args.split() + ['--dump=assertions', '--dag-thresh=0', '--simplification none'],
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+                         stderr=subprocess.PIPE,
+                         encoding="utf8",
+                         text=True)
     out, err = p.communicate(fullinput)
     for l in out.splitlines():
         if len(l)>8 and l[0:8]=="(assert ":
@@ -300,7 +304,7 @@ def simplifyUsingSMTSolver(precondition):
 def valid(formula, getvalue=[], getvalue_result={}):
     stats["smtqueries"] += 1
 
-    fullinput = "(set-logic ALL_SUPPORTED)\n"
+    fullinput = "(set-logic ALL)"
     fullinput += (abstractDefinition +
                   bowtie +
                   '(assert (not ' + formula + '))\n' +
@@ -313,11 +317,12 @@ def valid(formula, getvalue=[], getvalue_result={}):
         print(";;; valid("+formula+"):")
         print(fullinput)
 
-    p = subprocess.Popen(cvc4+args.cvc4args.split(),
+    p = subprocess.Popen(cvc5 + args.cvc4args.split(),
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-
+                         stderr=subprocess.PIPE,
+                         encoding="utf8",
+                         text=True)
     out, err = p.communicate(fullinput)
 
     outlines = out.splitlines()

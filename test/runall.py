@@ -4,10 +4,8 @@ from __future__ import print_function
 import itertools
 import subprocess
 import os.path
-import sys
 
 import pickle
-import yaml
 
 from parser import *
 
@@ -58,12 +56,14 @@ def getPrecondition(command, force):
         print("Running: " + command)
 
     p = subprocess.Popen(command.split(), stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         encoding="utf8",
+                         text=True)
     fullinput=""
     out, err = p.communicate(fullinput)
 
     if p.returncode != 0:
-        print("Out:\n" + out + "\nErr:\n" + err)
+        print(f"Out:\n {out}\nErr:\n{err}")
         sys.exit(1)
 
     ret = {}
@@ -184,14 +184,14 @@ def areEquivalent(cond1, cond2):
     
 first = True
 
-predsout = open(PREDS, 'wb')
+predsout = open(PREDS, 'w')
 
-with open(RESULTSTABLEFILE, 'wb') as output, open(APPENDIXFILE, 'wb') as appendix:
+with open(RESULTSTABLEFILE, 'w') as output, open(APPENDIXFILE, 'w') as appendix:
     # Data structures case-study.
     for ds in datastructures:
         if "auto" not in ds:
             if first:
-                print(ds + ":", file=predsout)
+                print(f"{ds} :", file=predsout)
                 #print("\\\\ \hline \hline \n \CCrow{"+ds+"}\\\\", file=output)
                 first = False
             else:
@@ -276,10 +276,10 @@ with open(RESULTSTABLEFILE, 'wb') as output, open(APPENDIXFILE, 'wb') as appendi
 
 
 if writeCache:
-    with open(CACHEFILE, 'wb') as output:
+    with open(CACHEFILE, 'w') as output:
         pickle.dump(outputCache, output, pickle.HIGHEST_PROTOCOL)
 
 if writeOperDefs:
-    with open(OPERDEFSFILE, 'wb') as output:
+    with open(OPERDEFSFILE, 'w') as output:
         for o in operSet:
             print("\\newcommand{\CC"+o+"}{"+o+"  }", file=output)
